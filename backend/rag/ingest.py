@@ -1,4 +1,5 @@
 from pypdf import PdfReader
+import chromadb
 
 def extract_text(pdf_path):
     reader = PdfReader(pdf_path)
@@ -15,9 +16,14 @@ def chunk_text(text, chunk_size=500, chunk_overlap=100):
         chunks.append(chunk)
     return chunks
 
+def store_chunks(chunks):
+    client = chromadb.PersistentClient(path="./chroma_db")
+    collection = client.get_or_create_collection(name="papers")
+    ids = [str(i) for i in range(len(chunks))]
+    collection.add(documents=chunks, ids=ids)
+
 if __name__ == "__main__":
-    sample = "A" * 1000
-    result = chunk_text(sample)
-    print(f"Number of chunks: {len(result)}")
-    for i, c in enumerate(result):
-        print(f"Chunk {i}: length {len(c)}")
+    sample_text = "Transformers changed AI forever. " * 100
+    chunks = chunk_text(sample_text)
+    store_chunks(chunks)
+    print(f"Stored {len(chunks)} chunks in ChromaDB")

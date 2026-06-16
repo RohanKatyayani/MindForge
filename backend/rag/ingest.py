@@ -22,8 +22,16 @@ def store_chunks(chunks):
     ids = [str(i) for i in range(len(chunks))]
     collection.add(documents=chunks, ids=ids)
 
+def retrieve(question, n_results=3):
+    client = chromadb.PersistentClient(path="./chroma_db")
+    collection = client.get_or_create_collection(name="papers")
+    results = collection.query(
+        query_texts=[question],
+        n_results=n_results
+    )
+    return results["documents"][0]
+     
 if __name__ == "__main__":
-    sample_text = "Transformers changed AI forever. " * 100
-    chunks = chunk_text(sample_text)
-    store_chunks(chunks)
-    print(f"Stored {len(chunks)} chunks in ChromaDB")
+    question = "What did transformers change?"
+    results = retrieve(question)
+    print(results)

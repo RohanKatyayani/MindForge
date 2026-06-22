@@ -23,11 +23,11 @@ def chunk_text(text, chunk_size=500, chunk_overlap=100):
         chunks.append(chunk)
     return chunks
 
-def store_chunks(chunks):
+def store_chunks(chunks, name):
     client = chromadb.PersistentClient(path="./chroma_db")
     collection = client.get_or_create_collection(name="papers")
-    ids = [str(i) for i in range(len(chunks))]
-    collection.add(documents=chunks, ids=ids)
+    name_ids = [f"{name}_{i}" for i in range(len(chunks))]
+    collection.upsert(documents=chunks, ids=name_ids)
 
 def retrieve(question, n_results=3):
     client = chromadb.PersistentClient(path="./chroma_db")
@@ -58,15 +58,14 @@ def generate_answer(question):
     return response.choices[0].message.content
 
 if __name__ == "__main__":
-    sample = "The transformer architecture replaced recurrent networks. It enabled parallel processing of sequences and made training large language models possible. It was introduced in 2017."
-    chunks = chunk_text(sample)
-    store_chunks(chunks)
+    paper1 = "The transformer architecture replaced recurrent networks. It enabled parallel processing and made training large language models possible."
+    paper2 = "Convolutional neural networks are mainly used for image recognition. They use filters to detect spatial features like edges and shapes."
 
-    question = "What did the transformer architecture enable?"
-    
-    retrieved = retrieve(question)          # <-- add this
-    print("RETRIEVED CHUNKS:", retrieved)   # <-- and this
-    
-    answer = generate_answer(question)
-    print(f"\nQuestion: {question}")
-    print(f"Answer: {answer}")
+    store_chunks(chunk_text(paper1), "paper1")
+    store_chunks(chunk_text(paper2), "paper2")
+
+    q1 = "What did the transformer enable?"
+    q2 = "What are CNNs used for?"
+
+    print(f"\nQ: {q1}\nA: {generate_answer(q1)}")
+    print(f"\nQ: {q2}\nA: {generate_answer(q2)}")

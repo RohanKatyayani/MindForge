@@ -1,35 +1,54 @@
 # 🧠 MindForge
 
-> Production-ready AI Research Assistant — RAG + Fine-tuned LLM + FastAPI + AWS
+> An AI research assistant you can ask questions about your documents — built from scratch, by hand.
 
 ## Status
-🚧 Active Development — Building started June 2026
+🚧 Active development — started June 2026. Building in public, one component at a time.
 
-## What It Does
-MindForge is an AI-powered research assistant that:
-- Ingests and indexes scientific papers using RAG
-- Answers research questions with a fine-tuned LLM
-- Exposes a FastAPI backend with a React frontend
-- Deployed on AWS with MLflow monitoring
+## What It Does (today)
+Upload a document and ask questions about it. MindForge retrieves the most
+relevant passages and generates an answer grounded in the source — and says
+"I don't know" when the answer isn't in the document, instead of hallucinating.
+
+## How It Works
+A Retrieval-Augmented Generation (RAG) pipeline, built without high-level
+frameworks so every step is explicit and understood:
+
+1. **Extract** — pull text from PDFs
+2. **Chunk** — split text into overlapping segments so no fact is lost at a boundary
+3. **Embed & Store** — encode chunks as vectors in a persistent ChromaDB store,
+   with namespaced IDs so multiple documents coexist without collisions
+4. **Retrieve** — semantic search returns the most relevant chunks for a question
+5. **Generate** — an LLM answers using only the retrieved context
 
 ## Tech Stack
-- **LLM:** Fine-tuned model with LoRA/PEFT
-- **RAG:** LangChain + FAISS/ChromaDB
-- **Backend:** FastAPI + PostgreSQL
-- **Frontend:** React
-- **Cloud:** AWS EC2 + S3
-- **Monitoring:** MLflow
+**Currently used**
+- Python
+- ChromaDB (vector store)
+- sentence-transformers (embeddings)
+- Groq / Llama 3.1 (generation)
 
-## Progress Log
-- [ ] Project architecture & setup
-- [ ] Data ingestion pipeline
-- [ ] RAG implementation
-- [ ] LLM fine-tuning
+**Planned**
+- FastAPI backend
+- React frontend
+- AWS (EC2 + S3) deployment
+- MLflow monitoring
+- Agentic layer (tool use + multi-step reasoning)
+
+## Progress
+- [x] Project architecture & setup
+- [x] PDF ingestion (extract + overlapping chunking)
+- [x] Vector storage with ChromaDB (namespaced, multi-document)
+- [x] Semantic retrieval
+- [x] Grounded generation with anti-hallucination
 - [ ] FastAPI backend
 - [ ] React frontend
 - [ ] AWS deployment
 - [ ] MLflow monitoring
+- [ ] Agentic capabilities
 
 ## Why I'm Building This
-To go from knowing AI concepts to shipping production AI systems.
-And to get to London by August 2026. 🇬🇧
+To go from understanding AI concepts to shipping a real, production-style AI
+system end to end — building every line by hand so I can explain any part of it.
+
+📍 Building toward a move back to London, 2026. 🇬🇧

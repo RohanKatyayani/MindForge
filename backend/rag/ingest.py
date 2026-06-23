@@ -29,7 +29,7 @@ def store_chunks(chunks, name):
     name_ids = [f"{name}_{i}" for i in range(len(chunks))]
     collection.upsert(documents=chunks, ids=name_ids)
 
-def retrieve(question, n_results=3):
+def retrieve(question, n_results=8):
     client = chromadb.PersistentClient(path="./chroma_db")
     collection = client.get_or_create_collection(name="papers")
     results = collection.query(
@@ -39,7 +39,7 @@ def retrieve(question, n_results=3):
     return results["documents"][0]
 
 def generate_answer(question):
-    chunks = "\n".join(retrieve(question))
+    chunks = "\n".join(retrieve(question, n_results=8))
 
     prompt = f""" Answer the following question from the provided information only.
     DO not use your own data and only answer from the context provided. 
@@ -58,14 +58,15 @@ def generate_answer(question):
     return response.choices[0].message.content
 
 if __name__ == "__main__":
-    paper1 = "The transformer architecture replaced recurrent networks. It enabled parallel processing and made training large language models possible."
-    paper2 = "Convolutional neural networks are mainly used for image recognition. They use filters to detect spatial features like edges and shapes."
 
-    store_chunks(chunk_text(paper1), "paper1")
-    store_chunks(chunk_text(paper2), "paper2")
+    text = extract_text("data/PaLM.pdf")
 
-    q1 = "What did the transformer enable?"
-    q2 = "What are CNNs used for?"
+    chunks = chunk_text(text)
 
-    print(f"\nQ: {q1}\nA: {generate_answer(q1)}")
-    print(f"\nQ: {q2}\nA: {generate_answer(q2)}")
+    print(f"\nTotal Number of Chunks = {len(chunks)}\n")
+
+    store_chunks(chunks, "palm")
+    
+    q1 = "How many parameters does PaLM have?"
+    print("RETRIEVED:", retrieve(q1))
+    print(f"\nQ: {q1}\nA: {generate_answer(q1)}\n")

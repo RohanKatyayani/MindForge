@@ -41,8 +41,8 @@ frameworks so every step is explicit and understood:
 - [x] Vector storage with ChromaDB (namespaced, multi-document)
 - [x] Semantic retrieval
 - [x] Grounded generation with anti-hallucination
-- [ ] FastAPI backend
-- [ ] React frontend
+- [x] FastAPI backend
+- [x] React frontend
 - [ ] AWS deployment
 - [ ] MLflow monitoring
 - [ ] Agentic capabilities

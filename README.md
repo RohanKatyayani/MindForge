@@ -43,7 +43,7 @@ frameworks so every step is explicit and understood:
 - [x] Grounded generation with anti-hallucination
 - [x] FastAPI backend
 - [x] React frontend
-- [ ] AWS deployment
+- [x] AWS deployment
 - [ ] MLflow monitoring
 - [ ] Agentic capabilities
 

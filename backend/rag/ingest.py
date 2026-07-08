@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+CHROMA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "chroma_db")
+
 groq_api = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api)
 
@@ -24,13 +26,13 @@ def chunk_text(text, chunk_size=500, chunk_overlap=100):
     return chunks
 
 def store_chunks(chunks, name):
-    client = chromadb.PersistentClient(path="./chroma_db")
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_or_create_collection(name="papers")
     name_ids = [f"{name}_{i}" for i in range(len(chunks))]
     collection.upsert(documents=chunks, ids=name_ids)
 
 def retrieve(question, n_results=8):
-    client = chromadb.PersistentClient(path="./chroma_db")
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_or_create_collection(name="papers")
     results = collection.query(
         query_texts=[question],

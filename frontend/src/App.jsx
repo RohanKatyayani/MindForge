@@ -296,7 +296,7 @@ const css = `
   --q-color: #eae7dd; --a-color: #f4f1e8; --a-accent: #e8d98a; --underline: #d98a8a;
   --btn-bg: #f2efe6; --btn-ink: #2a322f;
   --frame-a: #8a6b45; --frame-b: #6f5236;
-  --pad-a: #7a5c3c; --pad-b: #5f4630; --felt: #6b6b6b; --felt-2: #565656;
+  --pad-a: #8a683f; --pad-b: #6b4f30; --felt: #4d5b57;
   --glow: 0 0 3px rgba(255,255,255,0.12);
 }
 :root[data-board="white"] {
@@ -306,7 +306,7 @@ const css = `
   --q-color: #1f57c4; --a-color: #1a1a18; --a-accent: #1a8a4a; --underline: #d23b3b;
   --btn-bg: #1a1a18; --btn-ink: #ffffff;
   --frame-a: #9a9a90; --frame-b: #7f7f75;
-  --pad-a: #4a4a4a; --pad-b: #333333; --felt: #3a6bd0; --felt-2: #2f5ab8;
+  --pad-a: #7a5c3c; --pad-b: #5f4630; --felt: #4a5568;
   --glow: none;
 }
  
@@ -413,8 +413,8 @@ const css = `
   width: 100%;
   height: 100%;
   border-radius: 4px;
-  background: repeating-linear-gradient(45deg, var(--felt) 0 6px, var(--felt-2) 6px 12px);
-  box-shadow: inset 0 0 6px rgba(0,0,0,0.45);
+  background: var(--felt);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.12);
 }
  
 .hint { margin-top: 16px; font-size: 12px; letter-spacing: 0.05em; color: rgba(60,50,40,0.55); }

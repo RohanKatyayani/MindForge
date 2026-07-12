@@ -27,7 +27,6 @@ export default function App() {
   const [board, setBoard] = useState("chalk");
   const isChalk = board === "chalk";
  
-  // Words currently written on the board (question + answer), each erasable.
   const [qWords, setQWords] = useState([]);
   const [aWords, setAWords] = useState([]);
   const [erased, setErased] = useState(() => new Set());
@@ -44,7 +43,6 @@ export default function App() {
     setShownAnswer("");
     setAWords([]);
     setErrored(false);
-    // freeze the current question onto the board as erasable words
     setQWords(toWords(q));
     try {
       const res = await fetch(BACKEND_URL, {
@@ -61,7 +59,6 @@ export default function App() {
     setLoading(false);
   }
  
-  // stroke-on answer, then freeze into erasable words
   useEffect(() => {
     if (!answer) return;
     setShownAnswer("");
@@ -84,12 +81,11 @@ export default function App() {
     }
   }
  
-  // ---------- the free-floating duster ----------
-  const [dusterPos, setDusterPos] = useState({ x: 40, y: null }); // y null = rest on rail
+  const [dusterPos, setDusterPos] = useState({ x: 28, y: null });
   const [dragging, setDragging] = useState(false);
   const dusterRef = useRef(null);
   const dragOffset = useRef({ dx: 0, dy: 0 });
-  const boardRef = useRef(null);
+  const frameRef = useRef(null);
  
   const eraseUnder = useCallback(() => {
     const d = dusterRef.current;
@@ -132,10 +128,10 @@ export default function App() {
       if (e.cancelable) e.preventDefault();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const bx = boardRef.current.getBoundingClientRect();
+      const fx = frameRef.current.getBoundingClientRect();
       setDusterPos({
-        x: clientX - dragOffset.current.dx - bx.left,
-        y: clientY - dragOffset.current.dy - bx.top,
+        x: clientX - dragOffset.current.dx - fx.left,
+        y: clientY - dragOffset.current.dy - fx.top,
       });
       eraseUnder();
     }
@@ -161,149 +157,130 @@ export default function App() {
  
   const boardWritten = qWords.length > 0 || aWords.length > 0;
  
+  function resetBoard() {
+    setQWords([]);
+    setAWords([]);
+    setErased(new Set());
+    setQuestion("");
+    setAnswer("");
+    setShownAnswer("");
+    setErrored(false);
+  }
+ 
   return (
     <>
       <style>{css}</style>
  
-      <div className="bd" ref={boardRef}>
-        <div className="bd-inner">
-          <header className="bd-top">
-            <div className="brand">
-              <span className="mark">MindForge</span>
-              <span className="tag">research assistant</span>
-            </div>
-            <button className="flip" onClick={() => setBoard(isChalk ? "white" : "chalk")}>
-              {isChalk ? "Whiteboard" : "Chalkboard"}
-            </button>
-          </header>
- 
-          <div className="eyebrow">On the board —</div>
-          <div className="paper-title">{LOADED_PAPER.title}</div>
- 
-          <h1 className="hero">Ask the paper,<br />not the internet.</h1>
-          <p className="lede">
-            Every answer is written straight from the loaded paper —
-            architecture, training data, benchmarks, parameters. No paper,
-            no answer.
-          </p>
- 
-          {/* live input — only before the question is committed to the board */}
-          {qWords.length === 0 && (
-            <div className="ask-row">
-              <textarea
-                className="ask"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={onKeyDown}
-                rows={1}
-                spellCheck={false}
-                placeholder="write your question…"
-              />
-              <button
-                className="ask-btn"
-                onClick={() => askQuestion()}
-                disabled={loading || !question.trim()}
-              >
-                {loading ? "…" : "Ask"}
+      <div className="wall">
+        <div className="frame" ref={frameRef}>
+          <div className="board">
+            <header className="bd-top">
+              <div className="brand">
+                <span className="mark">MindForge</span>
+                <span className="tag">research assistant</span>
+              </div>
+              <button className="flip" onClick={() => setBoard(isChalk ? "white" : "chalk")}>
+                {isChalk ? "Whiteboard" : "Chalkboard"}
               </button>
-            </div>
-          )}
+            </header>
  
-          {/* committed question as erasable words */}
-          {qWords.length > 0 && (
-            <div className="written q-written">
-              <div className="written-label">question</div>
-              <p className="written-body">
-                {qWords.map((w) => (
-                  <span
-                    key={w.id}
-                    data-word={w.id}
-                    className={`word ${erased.has(w.id) ? "gone" : ""}`}
-                  >
-                    {w.text}
-                  </span>
-                ))}
-              </p>
-            </div>
-          )}
+            <div className="eyebrow">On the board —</div>
+            <div className="paper-title">{LOADED_PAPER.title}</div>
  
-          {/* answer: streams first, then becomes erasable words */}
-          {shownAnswer && aWords.length === 0 && (
-            <div className={`answer ${errored ? "err" : ""}`}>
-              <div className="answer-label">{errored ? "hmm" : "answer"}</div>
-              <p className="answer-body">
-                {shownAnswer}
-                {shownAnswer.length < answer.length && <span className="cursor">▍</span>}
-              </p>
-            </div>
-          )}
-          {aWords.length > 0 && (
-            <div className={`answer ${errored ? "err" : ""}`}>
-              <div className="answer-label">{errored ? "hmm" : "answer"}</div>
-              <p className="answer-body">
-                {aWords.map((w) => (
-                  <span
-                    key={w.id}
-                    data-word={w.id}
-                    className={`word ${erased.has(w.id) ? "gone" : ""}`}
-                  >
-                    {w.text}
-                  </span>
-                ))}
-              </p>
-              {!errored && <div className="underline" />}
-            </div>
-          )}
+            <h1 className="hero">Ask the paper,<br />not the internet.</h1>
+            <p className="lede">
+              Every answer is written straight from the loaded paper —
+              architecture, training data, benchmarks, parameters. No paper,
+              no answer.
+            </p>
  
-          {/* ask-again appears once something is on the board */}
-          {boardWritten && !loading && (
-            <button
-              className="again"
-              onClick={() => {
-                setQWords([]);
-                setAWords([]);
-                setErased(new Set());
-                setQuestion("");
-                setAnswer("");
-                setShownAnswer("");
-                setErrored(false);
-              }}
-            >
-              ← ask another
-            </button>
-          )}
- 
-          {!boardWritten && !loading && (
-            <div className="chips">
-              <span className="chips-label">Try</span>
-              {SAMPLES.map((s) => (
-                <button key={s} className="chip" onClick={() => setQuestion(s)}>
-                  {s}
+            {qWords.length === 0 && (
+              <div className="ask-row">
+                <textarea
+                  className="ask"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  rows={1}
+                  spellCheck={false}
+                  placeholder="write your question…"
+                />
+                <button
+                  className="ask-btn"
+                  onClick={() => askQuestion()}
+                  disabled={loading || !question.trim()}
+                >
+                  {loading ? "…" : "Ask"}
                 </button>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+ 
+            {qWords.length > 0 && (
+              <div className="written">
+                <div className="written-label">question</div>
+                <p className="written-body">
+                  {qWords.map((w) => (
+                    <span key={w.id} data-word={w.id} className={`word ${erased.has(w.id) ? "gone" : ""}`}>
+                      {w.text}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            )}
+ 
+            {shownAnswer && aWords.length === 0 && (
+              <div className={`answer ${errored ? "err" : ""}`}>
+                <div className="answer-label">{errored ? "hmm" : "answer"}</div>
+                <p className="answer-body">
+                  {shownAnswer}
+                  {shownAnswer.length < answer.length && <span className="cursor">▍</span>}
+                </p>
+              </div>
+            )}
+            {aWords.length > 0 && (
+              <div className={`answer ${errored ? "err" : ""}`}>
+                <div className="answer-label">{errored ? "hmm" : "answer"}</div>
+                <p className="answer-body">
+                  {aWords.map((w) => (
+                    <span key={w.id} data-word={w.id} className={`word ${erased.has(w.id) ? "gone" : ""}`}>
+                      {w.text}
+                    </span>
+                  ))}
+                </p>
+                {!errored && <div className="underline" />}
+              </div>
+            )}
+ 
+            {boardWritten && !loading && (
+              <button className="again" onClick={resetBoard}>← ask another</button>
+            )}
+ 
+            {!boardWritten && !loading && (
+              <div className="chips">
+                <span className="chips-label">Try</span>
+                {SAMPLES.map((s) => (
+                  <button key={s} className="chip" onClick={() => setQuestion(s)}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+ 
+          {/* free-floating top-view duster, positioned within the frame */}
+          <div
+            ref={dusterRef}
+            className={`duster ${dragging ? "grab" : ""}`}
+            style={dusterStyle}
+            onMouseDown={onDusterDown}
+            onTouchStart={onDusterDown}
+            title="Drag me over the writing to rub it out"
+          >
+            <span className="duster-pad" />
+          </div>
         </div>
  
-        {/* the rail */}
-        <div className="rail">
-          <span className="rail-hint">
-            pick up the {isChalk ? "duster" : "eraser"} and rub out what you like
-          </span>
-        </div>
- 
-        {/* the free-floating duster */}
-        <div
-          ref={dusterRef}
-          className={`duster ${dragging ? "grab" : ""}`}
-          style={dusterStyle}
-          onMouseDown={onDusterDown}
-          onTouchStart={onDusterDown}
-          title="Drag me over the writing to rub it out"
-        >
-          <span className="duster-felt" />
-          <span className="duster-body">{isChalk ? "duster" : "eraser"}</span>
-        </div>
+        <div className="hint">pick up the {isChalk ? "duster" : "eraser"} and rub out what you like</div>
       </div>
     </>
   );
@@ -313,51 +290,74 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@400;500&display=swap');
  
 :root[data-board="chalk"] {
+  --wall: #b3ab9c; --wall-2: #a59d8d;
   --board: #2a322f; --board-2: #232a27;
   --ink: #f2efe6; --ink-soft: #b7c0ba; --ink-faint: #8fa39a; --line: #4a534f;
   --q-color: #eae7dd; --a-color: #f4f1e8; --a-accent: #e8d98a; --underline: #d98a8a;
   --btn-bg: #f2efe6; --btn-ink: #2a322f;
-  --rail-a: #6b4f34; --rail-b: #4a3722; --rail-top: #7c5d3e;
+  --frame-a: #8a6b45; --frame-b: #6f5236;
+  --pad-a: #7a5c3c; --pad-b: #5f4630; --felt: #6b6b6b; --felt-2: #565656;
   --glow: 0 0 3px rgba(255,255,255,0.12);
 }
 :root[data-board="white"] {
+  --wall: #cfcabd; --wall-2: #c2bcae;
   --board: #f7f7f4; --board-2: #ffffff;
   --ink: #1a1a18; --ink-soft: #55554e; --ink-faint: #8a8a82; --line: #dcdcd4;
   --q-color: #1f57c4; --a-color: #1a1a18; --a-accent: #1a8a4a; --underline: #d23b3b;
   --btn-bg: #1a1a18; --btn-ink: #ffffff;
-  --rail-a: #d8d8d0; --rail-b: #c4c4ba; --rail-top: #e8e8e0;
+  --frame-a: #9a9a90; --frame-b: #7f7f75;
+  --pad-a: #4a4a4a; --pad-b: #333333; --felt: #3a6bd0; --felt-2: #2f5ab8;
   --glow: none;
 }
  
 * { box-sizing: border-box; margin: 0; padding: 0; }
  
-.bd {
-  position: relative;
+.wall {
   min-height: 100vh;
-  background: var(--board);
+  background: linear-gradient(135deg, var(--wall), var(--wall-2));
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
   font-family: 'Inter', ui-sans-serif, sans-serif;
-  color: var(--ink);
-  box-shadow: inset 0 0 160px rgba(0,0,0,0.35);
-  transition: background .4s ease, color .4s ease;
-  overflow: hidden;
+  transition: background .4s ease;
 }
  
-.bd-inner { flex: 1; width: 100%; max-width: 780px; margin: 0 auto; padding: 40px 40px 20px; }
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  background: linear-gradient(145deg, var(--frame-a), var(--frame-b));
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 22px 50px rgba(0,0,0,0.4),
+              inset 0 2px 4px rgba(255,255,255,0.22),
+              inset 0 -4px 8px rgba(0,0,0,0.35);
+}
  
-.bd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 34px; }
+.board {
+  background: var(--board);
+  border-radius: 5px;
+  padding: 36px 40px 30px;
+  color: var(--ink);
+  box-shadow: inset 0 0 110px rgba(0,0,0,0.45);
+  transition: background .4s ease, color .4s ease;
+  min-height: 62vh;
+}
+ 
+.bd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
 .brand { display: flex; align-items: baseline; gap: 12px; }
 .mark { font-family: 'Caveat', cursive; font-size: 34px; font-weight: 700; color: var(--ink); text-shadow: var(--glow); line-height: 1; }
 .tag { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
 .flip { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 22px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-family: inherit; transition: border-color .2s, color .2s; }
 .flip:hover { color: var(--ink); border-color: var(--ink-faint); }
  
-.eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
-.paper-title { font-family: 'Caveat', cursive; font-size: 24px; color: var(--ink-soft); margin-bottom: 30px; text-shadow: var(--glow); }
+.eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px; }
+.paper-title { font-family: 'Caveat', cursive; font-size: 24px; color: var(--ink-soft); margin-bottom: 28px; text-shadow: var(--glow); }
  
-.hero { font-family: 'Caveat', cursive; font-size: 58px; line-height: 1.02; font-weight: 700; color: var(--ink); text-shadow: var(--glow); margin-bottom: 18px; letter-spacing: 0.005em; }
-.lede { font-size: 15px; line-height: 1.75; color: var(--ink-soft); max-width: 58ch; margin-bottom: 34px; }
+.hero { font-family: 'Caveat', cursive; font-size: 54px; line-height: 1.02; font-weight: 700; color: var(--ink); text-shadow: var(--glow); margin-bottom: 16px; letter-spacing: 0.005em; }
+.lede { font-size: 15px; line-height: 1.75; color: var(--ink-soft); max-width: 54ch; margin-bottom: 32px; }
  
 .ask-row { border: 1.5px dashed var(--line); border-radius: 12px; background: var(--board-2); padding: 6px 6px 6px 22px; display: flex; align-items: center; gap: 12px; }
 .ask-row:focus-within { border-color: var(--ink-faint); border-style: solid; }
@@ -373,7 +373,7 @@ const css = `
 .written-label { color: var(--ink-faint); }
 .written-body { font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.5; color: var(--q-color); text-shadow: var(--glow); }
  
-.answer { margin-top: 30px; }
+.answer { margin-top: 28px; }
 .answer-label { color: var(--a-accent); }
 .answer-body { font-family: 'Caveat', cursive; font-size: 30px; line-height: 1.5; color: var(--a-color); text-shadow: var(--glow); min-height: 1.5em; }
 .cursor { animation: blink 1s step-end infinite; color: var(--a-accent); }
@@ -383,36 +383,54 @@ const css = `
  
 .underline { height: 3px; width: 55%; max-width: 340px; background: var(--underline); opacity: .65; margin-top: 14px; border-radius: 2px; animation: draw .5s ease forwards; transform-origin: left; }
  
-.again { margin-top: 28px; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 20px; padding: 8px 18px; font-family: 'Caveat', cursive; font-size: 19px; cursor: pointer; transition: border-color .2s, color .2s; }
+.again { margin-top: 26px; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 20px; padding: 8px 18px; font-family: 'Caveat', cursive; font-size: 19px; cursor: pointer; transition: border-color .2s, color .2s; }
 .again:hover { color: var(--ink); border-color: var(--ink-faint); }
  
-.chips { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.chips { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .chips-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); margin-right: 4px; }
 .chip { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 20px; padding: 8px 16px; font-family: 'Caveat', cursive; font-size: 18px; cursor: pointer; transition: border-color .2s, color .2s; }
 .chip:hover { color: var(--ink); border-color: var(--ink-faint); }
  
-.rail { position: relative; height: 26px; background: linear-gradient(var(--rail-a), var(--rail-b)); border-top: 2px solid var(--rail-top); display: flex; align-items: center; justify-content: center; }
-.rail-hint { font-size: 11px; letter-spacing: 0.05em; color: rgba(255,255,255,0.35); pointer-events: none; }
-:root[data-board="white"] .rail-hint { color: rgba(0,0,0,0.3); }
- 
-.duster { position: absolute; width: 100px; height: 42px; cursor: grab; display: flex; flex-direction: column; border-radius: 4px; overflow: hidden; box-shadow: 0 5px 14px rgba(0,0,0,0.4); user-select: none; touch-action: none; z-index: 50; }
+/* top-view duster: a wooden block seen from above with a felt pad */
+.duster {
+  position: absolute;
+  left: 28px;
+  bottom: 14px;
+  width: 104px;
+  height: 56px;
+  cursor: grab;
+  border-radius: 7px;
+  background: linear-gradient(145deg, var(--pad-a), var(--pad-b));
+  box-shadow: 0 8px 18px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.2);
+  padding: 9px;
+  user-select: none;
+  touch-action: none;
+  z-index: 60;
+}
 .duster.grab { cursor: grabbing; }
-.duster-felt { height: 14px; background: repeating-linear-gradient(90deg, #6b6b6b 0 4px, #5a5a5a 4px 8px); }
-.duster-body { flex: 1; background: linear-gradient(#8a6b45, #6f5236); color: #f0e6d6; font-family: 'Caveat', cursive; font-size: 18px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.02em; }
-:root[data-board="white"] .duster-felt { background: repeating-linear-gradient(90deg, #3a6bd0 0 6px, #2f5ab8 6px 12px); }
-:root[data-board="white"] .duster-body { background: linear-gradient(#3d3d3d, #262626); color: #f0f0f0; }
+.duster-pad {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background: repeating-linear-gradient(45deg, var(--felt) 0 6px, var(--felt-2) 6px 12px);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.45);
+}
+ 
+.hint { margin-top: 16px; font-size: 12px; letter-spacing: 0.05em; color: rgba(60,50,40,0.55); }
  
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
  
-@media (max-width: 620px) {
-  .bd-inner { padding: 28px 22px 16px; }
-  .hero { font-size: 42px; }
+@media (max-width: 640px) {
+  .wall { padding: 20px 12px; }
+  .frame { padding: 10px; }
+  .board { padding: 26px 22px 22px; min-height: 68vh; }
+  .hero { font-size: 40px; }
   .mark { font-size: 28px; }
   .ask-row { flex-direction: column; align-items: stretch; padding: 14px; }
   .ask-btn { width: 100%; padding: 10px; }
-  .duster { width: 88px; }
-  .rail-hint { display: none; }
+  .duster { width: 88px; height: 48px; }
 }
  
 @media (prefers-reduced-motion: reduce) {

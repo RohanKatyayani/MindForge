@@ -185,14 +185,12 @@ export default function App() {
               </button>
             </header>
  
-            <div className="eyebrow">On the board —</div>
+            <div className="eyebrow">On the board</div>
             <div className="paper-title">{LOADED_PAPER.title}</div>
  
             <h1 className="hero">Ask the paper,<br />not the internet.</h1>
             <p className="lede">
-              Every answer is written straight from the loaded paper —
-              architecture, training data, benchmarks, parameters. No paper,
-              no answer.
+              Every answer is written straight from the loaded paper architecture, training data, benchmarks, parameters. No paper, no answer.
             </p>
  
             {qWords.length === 0 && (

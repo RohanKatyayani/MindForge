@@ -189,7 +189,7 @@ export default function App() {
             <div className="paper-title">{LOADED_PAPER.title}</div>
  
             <h1 className="hero">Ask the paper,<br />not the internet.</h1>
-            <p className="lede">
+            <p className="eyebrow">
               Every answer is written straight from the loaded paper architecture, training data, benchmarks, parameters. No paper, no answer.
             </p>
  

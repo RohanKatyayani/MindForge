@@ -11,7 +11,7 @@ function App() {
     setLoading(true);
     setAnswer("");
     try {
-      const response = await fetch("http://3.109.3.32:8000/ask", {
+      const response = await fetch("https://mindforgeai.duckdns.org/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: question }),

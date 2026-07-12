@@ -174,6 +174,7 @@ export default function App() {
       <div className="wall">
         <div className="frame" ref={frameRef}>
           <div className="board">
+            <div className="board-inner">
             <header className="bd-top">
               <div className="brand">
                 <span className="mark">MindForge</span>
@@ -265,6 +266,7 @@ export default function App() {
                 ))}
               </div>
             )}
+            </div>
           </div>
  
           {/* free-floating top-view duster, positioned within the frame */}
@@ -312,14 +314,17 @@ const css = `
  
 * { box-sizing: border-box; margin: 0; padding: 0; }
  
+html, body, #root { width: 100%; min-height: 100vh; margin: 0; padding: 0; background: var(--wall); }
+ 
 .wall {
   min-height: 100vh;
+  width: 100%;
   background: linear-gradient(135deg, var(--wall), var(--wall-2));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  padding: 4vh 4vw;
   font-family: 'Inter', ui-sans-serif, sans-serif;
   transition: background .4s ease;
 }
@@ -327,10 +332,10 @@ const css = `
 .frame {
   position: relative;
   width: 100%;
-  max-width: 780px;
+  max-width: 1100px;
   background: linear-gradient(145deg, var(--frame-a), var(--frame-b));
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 18px;
   box-shadow: 0 22px 50px rgba(0,0,0,0.4),
               inset 0 2px 4px rgba(255,255,255,0.22),
               inset 0 -4px 8px rgba(0,0,0,0.35);
@@ -338,13 +343,15 @@ const css = `
  
 .board {
   background: var(--board);
-  border-radius: 5px;
-  padding: 36px 40px 30px;
+  border-radius: 6px;
+  padding: 44px 56px 38px;
   color: var(--ink);
-  box-shadow: inset 0 0 110px rgba(0,0,0,0.45);
+  box-shadow: inset 0 0 130px rgba(0,0,0,0.45);
   transition: background .4s ease, color .4s ease;
-  min-height: 62vh;
+  min-height: 74vh;
 }
+ 
+.board-inner { max-width: 820px; margin: 0 auto; }
  
 .bd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
 .brand { display: flex; align-items: baseline; gap: 12px; }

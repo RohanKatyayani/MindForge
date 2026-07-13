@@ -4,12 +4,12 @@
  
 **Live demo:** [mind-forge-coral.vercel.app](https://mind-forge-coral.vercel.app)
  
-<!-- ▶️ DEMO VIDEO — paste your screen recording / GIF here.
-     On GitHub you can drag-and-drop an .mp4 or .gif directly into the README
-     editor and it embeds automatically. Recommended: a 20–30s clip of a
-     question being asked and answered. -->
- 
-<!-- 🖼️ HERO SCREENSHOT — drop a clean shot of the UI answering a question here -->
+
+https://github.com/user-attachments/assets/f02940e5-21a3-4104-a4ed-86df813acf36
+
+
+<img width="1920" height="1080" alt="Screenshot 2026-07-13 at 2 58 53 AM" src="https://github.com/user-attachments/assets/e854ccba-1239-4a39-988c-42003ec2dbd4" />
+
  
 ---
  
